@@ -13,6 +13,16 @@ namespace FoodTruckFinder.Domain.Dtos
         public string[] AllowedDomains { get; set; }
 
         public int MinRecordsToView { get; set; } = 10;
+
+        public DataSource DataSource { get; set; }
+    }
+
+    public class DataSource
+    {
+        public string Name { get; set; }
+
+        public string Path { get; set; }
+
     }
 
     public class MedianLocation

@@ -2,6 +2,7 @@ using FoodTruckFinder.Api.Middleware;
 using FoodTruckFinder.Data;
 using FoodTruckFinder.Domain.Contracts;
 using FoodTruckFinder.Domain.Dtos;
+using FoodTruckFinder.Domain.Entities;
 using FoodTruckFinder.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +19,12 @@ var appConfig = new ApplicationConfig()
         DistanceInKms = medialDistance
     },
     AllowedDomains = builder.Configuration.GetSection("AllowedDomains").Get<string[]>(),
-    MinRecordsToView = builder.Configuration.GetSection("MinRecordsToView").Get<int>()
+    MinRecordsToView = builder.Configuration.GetSection("MinRecordsToView").Get<int>(),
+    DataSource = new DataSource()
+    {
+        Name = builder.Configuration.GetSection("DataSource")["Name"],
+        Path = builder.Configuration.GetSection("DataSource")["Path"]
+    }
 };
 builder.Services.AddSingleton(appConfig);
 
@@ -38,16 +44,23 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IFoodTruckService, FoodTruckService>();
-builder.Services.AddSingleton<IDataSourceProvider, CSVDataContext>();
+if (appConfig.DataSource.Name == "CSV")
+{
+    builder.Services.AddSingleton<IDataSourceProvider, CSVDataContext>();
+}
+else
+{
+    //Default to CSV to avoid run time failure.
+    builder.Services.AddSingleton<IDataSourceProvider, CSVDataContext>();
+}
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseCors(allowedDomains);
 app.UseHttpsRedirection();
@@ -55,20 +68,18 @@ app.UseHttpsRedirection();
 
 app.MapGet("/FoodTruck/{latitude}/{longitude}/{foodsearch?}", (double latitude, double longitude, string? foodsearch, IFoodTruckService foodTruckService) =>
 {
-    return foodTruckService.Get(latitude,longitude, foodsearch);
+    return foodTruckService.Get(latitude, longitude, foodsearch);
 })
-.WithName("Get");
+.WithName("Get")
+.Produces<List<FoodTruck>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status400BadRequest);
 
 app.MapGet("/FoodTruck/{location}", (string location, IFoodTruckService foodTruckService) =>
 {
     return foodTruckService.GetByAddress(location);
 })
-.WithName("GetByAddress");
-
+.WithName("GetByAddress")
+.Produces<List<FoodTruck>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status400BadRequest);
 
 app.Run();
-
-internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
