@@ -33,4 +33,5 @@ Please read the information below at least once to understand how to work with t
 ## Build and deployment with docker
 ** Important - This project is configired with Docker to run as a container app. However, this needs to be further tested 
 * Use the command line and change the current directory to root folder of the application 
-* Issue the command docker build -t foodtruckapi -f FoodTruckFinder.Api/Dockerfile .
+* Issue "docker build -t foodtruckapi -f FoodTruckFinder.Api/Dockerfile ." to build the docker image
+* Issue "docker run -d -p 5000:80 --name foodtruckapi
