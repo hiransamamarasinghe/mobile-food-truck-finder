@@ -18,12 +18,12 @@ namespace FoodTruckFinder.Services
 
         public List<FoodTruck> Get(double latitude, double longitude, string? foodSearch, string type = "Truck")
         {
-            if (latitude < -90 && latitude > 90)
+            if (latitude < -90 || latitude > 90)
             {
                 throw new BadRequestExceptions("INVALID_LATITUDE");
             }
 
-            if (longitude < -180 && longitude > 180)
+            if (longitude < -180 || longitude > 180)
             {
                 throw new BadRequestExceptions("INVALID_LONGITUDE");
             }
@@ -36,25 +36,7 @@ namespace FoodTruckFinder.Services
 
             if (distanceFromMedianLocation.Item1 > _applicationConfig.MedianLocation.DistanceInKms)
             {
-                //throw new BadRequestExceptions("NOT_WITHIN_RANGE");
-                var data = new List<FoodTruck>();
-                data.Add(new FoodTruck()
-                {
-                    Latitude = 6.869461265954611,
-                    Longitude = 79.92580623550191,
-                    Applicant = "P&S",
-                    FoodItems = "Buns and Cake"
-                });
-
-                data.Add(new FoodTruck()
-                {
-                    Latitude = 6.868566512564857,
-                    Longitude = 79.9303552616475,
-                    Applicant = "Fab",
-                    FoodItems = "Savory items"
-                });
-
-                return data;
+                throw new BadRequestExceptions("NOT_WITHIN_RANGE");
             }
             var results = _dataSourceProvider.FoodTrucks.Where(ft => ft.FacilityType == type && ft.Status == "APPROVED"
                            && (string.IsNullOrEmpty(foodSearch) || ft.FoodItems.Contains(foodSearch)))
@@ -80,14 +62,14 @@ namespace FoodTruckFinder.Services
         }
 
         /// <summary>
-        /// haversine formulla
+        /// Haversine formulla to calculate distance in kilometers
         /// </summary>
         /// <param name="rlatUser"></param>
         /// <param name="longitudeUser"></param>
         /// <param name="foodTruck"></param>
         /// <returns></returns>
 
-        private Tuple<double, FoodTruck> CalculateDistance(double rlatUser, double longitudeUser, FoodTruck foodTruck)
+        public Tuple<double, FoodTruck> CalculateDistance(double rlatUser, double longitudeUser, FoodTruck foodTruck)
         {
             double R = 6371;
             var lat = (rlatUser - foodTruck.Latitude).ToRadians();

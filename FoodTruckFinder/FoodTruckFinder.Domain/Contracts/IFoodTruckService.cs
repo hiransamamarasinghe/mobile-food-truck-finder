@@ -13,5 +13,7 @@ namespace FoodTruckFinder.Domain.Contracts
         List<FoodTruck> Get(double latitude, double longitude, string? foodSearch, string type = "Truck");
 
         List<FoodTruck> GetByAddress(string city, string type = "Truck");
+
+        Tuple<double, FoodTruck> CalculateDistance(double rlatUser, double longitudeUser, FoodTruck foodTruck);
     }
 }
